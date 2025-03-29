@@ -15,6 +15,7 @@
     "element-plus": "^2.8.4",
     "pinia": "^2.2.6",
     "sharp": "^0.33.5",
+    "socket.io-client": "^4.8.1",
     "vue": "^3.4.29",
     "vue-echarts": "^7.0.3",
     "vue-router": "^4.4.5",
