@@ -22,7 +22,8 @@ npm run dev
 node server.js
 
 # 启动测试工具（可选）
-node test/test-sender.js    # 测试视频流发送
+node test/test-sender-img.js    # 测试视频流发送
+node test/test-sender-data.js    # 测试视频流发送
 node test/test-receiver.js  # 测试消息监控
 ```
 
@@ -75,7 +76,7 @@ node test/test-receiver.js  # 测试消息监控
 ## 数据格式说明
 
 ### Dashboard数据格式
- 见模拟程序src/utils/messageReceiver.js 
+ 见模拟程序src/utils/mockDataGenerator.js
  
 ### 发送方式
  见模拟程序src/utils/wsClient.js 或者test-sender.js
