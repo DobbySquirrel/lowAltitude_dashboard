@@ -17,69 +17,41 @@
           <!-- Statistic Cards Layout -->
           <el-row :gutter="5" class="statistic-row">
             <el-col :span="1" class="statistic-col"> </el-col>
-            <el-col :span="5" class="statistic-col">
+            <el-col :span="8" class="statistic-col">
               <div class="statistic-card">
                 <el-statistic
-                  :value="carbonReduction"
+                  :value="humanSuccessOrders"
                   value-style="font-size: 1.2em; color: #2c3e50;font-weight: bold;"
                 >
                   <template #title>
                     <div style="display: inline-flex; align-items: center; font-size: 1.2em; color: #2c3e50;">
-                      Carbon Reduction
+                      Courier Success Orders
                     </div>
                   </template>
                   <template #prefix>
-                    <el-icon class="statistic-icon" color="#16a2d7">
-                      <Odometer />
-                    </el-icon>
+                    <img :src="orderIcons.courier" class="statistic-icon" alt="courier" style="width: 35px; height: 35px;" />
                     <span style="margin-left: 5px"></span>
                   </template>
-                  <template #suffix>
-                    <el-text class="mx-1" style="font-size: 0.8em; color: #3a7ca5">
-                      <span style="margin-left: 10px"></span>g CO2
-                    </el-text>
-                  </template>
                 </el-statistic>
-              </div>
-            </el-col>
-            
-            <el-col :span="8" class="statistic-col">
-              <div style="font-size: 0.5em; color: #2c3e50;">
-                = {{ recycledBoxes }} boxes * 0.5267g per box
-              </div>
-              <div style="font-size: 10px; color: #2c3e50; margin-top: 5px;">
-                Notes: <br>1. Assumed 20 cycles for green boxes <br>2. Carbon reduction is compared with corrugated boxes of the same size and transport distance
               </div>
             </el-col>
 
-            <el-col :span="4" class="statistic-col">
+            <el-col :span="8" class="statistic-col">
               <div class="statistic-card">
                 <el-statistic
-                  :value="recycledBoxes"
+                  :value="droneSuccessOrders"
                   value-style="font-size: 1.2em; color: #2c3e50;font-weight: bold;"
                 >
                   <template #title>
                     <div style="display: inline-flex; align-items: center; font-size: 1.2em; color: #2c3e50;">
-                      Box Recycling
+                      Drone Success Orders
                     </div>
                   </template>
                   <template #prefix>
-                    <el-icon class="statistic-icon" color="#16a2d7">
-                      <MessageBox />
-                    </el-icon>
+                    <img :src="orderIcons.drone" class="statistic-icon" alt="drone" style="width: 35px; height: 35px;" />
                     <span style="margin-left: 5px"></span>
                   </template>
-                  <template #suffix>
-                    <el-text class="mx-1" style="font-size: 0.8em; color: #3a7ca5">
-                      <span style="margin-left: 10px"></span>Boxes
-                    </el-text>
-                  </template>
                 </el-statistic>
-              </div>
-            </el-col>
-            <el-col :span="5" class="statistic-col">
-              <div style="font-size: 10px; color: #2c3e50; ">
-                = Number of Recycling boxes placed in the locker
               </div>
             </el-col>
           </el-row>
@@ -95,7 +67,7 @@
 </template>
 
 <script setup>
-import { Odometer, MessageBox } from "@element-plus/icons-vue";
+import { orderIcons } from '@/utils/orderIcons';
 
 // 定义props
 defineProps({
@@ -104,6 +76,14 @@ defineProps({
     default: 0
   },
   recycledBoxes: {
+    type: Number,
+    default: 0
+  },
+  humanSuccessOrders: {
+    type: Number,
+    default: 0
+  },
+  droneSuccessOrders: {
     type: Number,
     default: 0
   }

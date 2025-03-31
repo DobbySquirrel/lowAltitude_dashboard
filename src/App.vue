@@ -116,6 +116,7 @@ import ChatWindow from './components/ChatWindow.vue';
 import { ref } from 'vue'
 import { Shop, ChatDotRound } from '@element-plus/icons-vue'
 import DeliveryRolePanel from "./components/DeliveryRolePanel.vue";
+import { transformOrderToDashboard } from './utils/dataTransformer';
 
 const store = useDataStore();
 const { dashboardData } = storeToRefs(store);
@@ -132,9 +133,13 @@ onMounted(() => {
   // 设置消息处理函数
   wsClient.onMessage((event) => {
     try {
-      const data = JSON.parse(event.data);
-      if (data.type === 'dashboard-data') {
-        store.updateDashboardData(data.payload);
+      const message = JSON.parse(event.data);
+      if (message.type === 'order-data') {
+        const orderData = message.data;
+        const transformedData = transformOrderToDashboard(orderData);
+        if (transformedData) {
+          store.updateDashboardData(transformedData);
+        }
       }
     } catch (error) {
       console.error('Error processing message:', error);
@@ -142,7 +147,9 @@ onMounted(() => {
   });
 
   // 建立连接
-  wsClient.connect();
+  wsClient.connect().catch(error => {
+    console.error('WebSocket connection error:', error);
+  });
 });
 
 onUnmounted(() => {

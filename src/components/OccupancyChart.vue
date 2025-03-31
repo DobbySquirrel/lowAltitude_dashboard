@@ -5,145 +5,134 @@
 </template>
 
 <script setup>
-import * as echarts from 'echarts';
-import { orderIcons } from '@/utils/orderIcons';
+import * as echarts from "echarts";
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 
 const props = defineProps({
-  devices: {
-    type: Object,
-    default: () => ({
-      locker: { total: 0, used: 0 },
-      indoorCar: { total: 0, used: 0 },
-      outdoorCar: { total: 0, used: 0 },
-      drone: { total: 0, used: 0 }
-    })
+  orders: {
+    type: Array,
+    default: () => []
   }
 });
 
 const myChart = ref(null);
 
-const updateChart = () => {
+const ORDER_STATUS = {
+  '已下单': '已下单',
+  '准备中': '准备中',
+  '配送中': '配送中',
+  '已送达': '已送达'
+};
+
+const renderChart = () => {
+  const chartDom = document.getElementById("OccupancyChart");
+  if (!chartDom) return;
+
+  const orderCounts = calculateOrderStatusCounts(props.orders);
+  
   const option = {
     title: {
-      text: 'Vehicle Occupancy Rate',
+      text: "Order Status Distribution",
       left: "center",
       textStyle: {
-        color: '#333',
-        fontSize: 12
+        color: "#333",
+        fontSize: 10
       },
-      top: '0%',
-    },
-    legend: {
-      data: ['Activated', 'Count'],
-      top: '10%',
-      left: 'center',
-      textStyle: {
-        fontSize: 10  
-      }
+      top: '0%'
     },
     tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'shadow'
+      trigger: 'item',
+      formatter: function(params) {
+        return `${params.name}<br/>Count: ${params.value} (${Math.round(params.percent)}%)`
       }
     },
     grid: {
-      containLabel: true,
-      left: '0%',
-      bottom: '0%',
+      left: '3%',
+      right: '10%',
+      bottom: 0,
       top: '18%',
+      containLabel: true,
     },
-    yAxis: {
-      data: ['Locker', 'Indoor_Car', 'Outdoor_Car', 'Drone'],
-      inverse: true,
-      position: 'left',
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: {
-        margin: 30,
-        fontSize: 10,
+    series: [{
+      name: '订单状态',
+      type: 'pie',
+      radius: ['30%', '50%'],
+      center: ['50%', '55%'],
+      avoidLabelOverlap: true,
+      itemStyle: {
+        borderRadius: 10,
+        borderColor: '#fff',
+        borderWidth: 2
       },
-    },
-    xAxis: {
-      max: 14,
-      splitLine: { show: true },
-      axisLabel: { show: false },
-      axisTick: { show: false },
-      axisLine: { show: false }
-    },
-    series: [
-      {
-        type: 'pictorialBar',
-        name: 'Activated',
-        barCategoryGap: 0,
-        symbolBoundingData: 10,
-        animationDuration: 0,
-        symbolSize: ["80%", "80%"],
-        z: 10,
+      label: {
+        show: true,
+        formatter: function(params) {
+          return `${params.name}:\n${params.value} (${Math.round(params.percent)}%)`;
+        },
+        fontSize: 10
+      },
+      emphasis: {
         label: {
           show: true,
-          position: 'left',
-          offset: [0, 0],
-          fontSize: 10,
-          color: "#3a7ca5",
-        },
-        itemStyle: {
-          color: '#3a7ca5'
-        },
-        data: [
-          { value: props.devices.locker.used, symbol: orderIcons.Locker, symbolRepeat: 'true', symbolSize: ["60%", "60%"] },
-          { value: props.devices.indoorCar.used, symbol: orderIcons.Indoor_Car, symbolRepeat: 'true', symbolSize: ["70%", "50%"] },
-          { value: props.devices.outdoorCar.used, symbol: orderIcons.Outdoor_Car, symbolRepeat: 'true', symbolSize: ["70%", "50%"] },
-          { value: props.devices.drone.used, symbol: orderIcons.Drone, symbolRepeat: 'true', symbolSize: ["65%", "65%"] }
-        ]
+          fontSize: '12',
+          fontWeight: 'bold'
+        }
       },
-      {
-        name: 'Count',
-        type: 'pictorialBar',
-        animationDuration: 0,
-        symbolBoundingData: 10,
-        symbolSize: ["80%", "80%"],
-        label: {
-          show: true,
-          position: 'right',
-          offset: [10, 0],
-          fontSize: 10,
-        },
+      data: Object.entries(orderCounts).map(([status, count], index) => ({
+        value: count,
+        name: status,
         itemStyle: {
-          color: 'rgba(128, 128, 128, 0.8)'
-        },
-        data: [
-          { value: props.devices.locker.total, symbol: orderIcons.Locker, symbolRepeat: 'true', symbolSize: ["60%", "60%"] },
-          { value: props.devices.indoorCar.total, symbol: orderIcons.Indoor_Car, symbolRepeat: 'true', symbolSize: ["70%", "50%"] },
-          { value: props.devices.outdoorCar.total, symbol: orderIcons.Outdoor_Car, symbolRepeat: 'true', symbolSize: ["70%", "50%"] },
-          { value: props.devices.drone.total, symbol: orderIcons.Drone, symbolRepeat: 'true', symbolSize: ["65%", "65%"] }
-        ]
-      }
-    ]
+          color: [
+            '#2c3e50',  // 最深的深灰蓝色
+            '#3a7ca5',  // 深蓝色
+            '#16a2d7',  // 亮蓝色
+            '#bde0fe',  // 最浅的浅蓝色
+          ][index % 4]
+        }
+      }))
+    }]
   };
 
   myChart.value.setOption(option);
 };
 
-const handleResize = () => {
-  myChart.value && myChart.value.resize();
+const calculateOrderStatusCounts = (orders) => {
+  const counts = {
+    '已下单': 0,
+    '准备中': 0,
+    '配送中': 0,
+    '已送达': 0
+  };
+  
+  const successOrders = props.orders.filter(order => order.status === '已送达').length;
+  
+  orders.forEach(order => {
+    if (order.status && counts[order.status] !== undefined) {
+      if (order.status === '已送达') {
+        counts['已送达'] = successOrders;
+      } else {
+        counts[order.status]++;
+      }
+    }
+  });
+  
+  return counts;
 };
 
-// 监听数据变化
-watch(() => props.devices, () => {
-  updateChart();
+// Watch for data changes
+watch(() => props.orders, () => {
+  renderChart();
 }, { deep: true });
 
 onMounted(() => {
   myChart.value = echarts.init(document.getElementById('OccupancyChart'));
-  updateChart();
-  window.addEventListener('resize', handleResize);
+  renderChart();
+  window.addEventListener('resize', () => myChart.value?.resize());
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-  myChart.value && myChart.value.dispose();
+  window.removeEventListener('resize', () => myChart.value?.resize());
+  myChart.value?.dispose();
 });
 </script>
 
@@ -162,4 +151,3 @@ onUnmounted(() => {
   min-height: 150px;
 }
 </style>
-

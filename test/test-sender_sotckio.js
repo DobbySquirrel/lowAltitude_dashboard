@@ -1,59 +1,99 @@
-import WebSocket from 'ws';
-import chalk from 'chalk'; // 需要先安装: npm install chalk
+import { io } from 'socket.io-client';
 
-// 连接到Stockio WebSocket服务器
-const ws = new WebSocket('ws://10.4.152.254:5001');
+// Socket配置选项
+const socketOptions = {
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    timeout: 5000,
+    transports: ['websocket', 'polling']
+};
 
-// 设置客户端类型
-ws.on('open', () => {
-    console.log(chalk.green('已连接到Stockio服务器'));
-    console.log(chalk.green('WebSocket连接成功! 地址:', 'ws://10.4.152.254:5001'));
-    
-    // 定期发送模拟的股票数据
-    setInterval(() => {
-        const mockStockData = {
-            type: 'stock-update',
-            timestamp: Date.now(),
-            data: {
-                symbol: 'AAPL',  // 股票代码
-                price: (Math.random() * 100 + 150).toFixed(2),  // 随机价格
-                volume: Math.floor(Math.random() * 10000),  // 随机成交量
-                change: (Math.random() * 10 - 5).toFixed(2)  // 随机涨跌
-            }
-        };
+// 创建socket实例
+const socket = io('http://10.4.152.244:5001', socketOptions);
+
+// 事件监听器集中管理
+const setupEventListeners = () => {
+    // 基础连接事件
+    socket.on('connect', () => {
+        console.log('=== 连接事件 ===');
+        console.log('已成功连接到服务器');
+        console.log('Socket ID:', socket.id);
         
-        ws.send(JSON.stringify(mockStockData));
-        console.log(chalk.blue('已发送股票数据:'), mockStockData);
-    }, 2000);  // 每2秒发送一次数据
-});
+        // 直接使用字符串形式
+        const initData = '{"message": {"client_type": "web"}}';
+        
+        console.log('发送的数据类型:', typeof initData);
+        console.log('发送的数据内容:', initData);
+        
+        socket.emit('init', initData);
+        socket.emit('client_message', initData);
+    });
 
-// 处理接收到的消息
-ws.on('message', (data) => {
-    try {
-        const message = JSON.parse(data);
-        console.log(chalk.yellow('收到服务器响应:'), message);
-    } catch (error) {
-        console.error('解析消息失败:', error);
-    }
-});
+    // 监听init响应
+    socket.on('init', (data) => {
+        console.log('=== 初始化响应 ===');
+        console.log('服务器初始化响应:', data);
+    });
+    // 监听init响应
+    socket.on('connect', (data) => {
+        console.log('=== 初始化响应 ===');
+        console.log('服务器初始化响应:', data);
+    });
 
-// 错误处理
-ws.on('error', (error) => {
-    console.error(chalk.red('WebSocket错误:'), error);
-    console.error(chalk.red('请确认以下内容:'));
-    console.error(chalk.red('1. 服务器IP是否可以访问 (ping 10.4.152.244)'));
-    console.error(chalk.red('2. 端口5001是否开放'));
-    console.error(chalk.red('3. 服务器是否正在运行'));
-});
+    // 监听所有事件（调试用）
+    socket.onAny((eventName, ...args) => {
+        console.log('=== 收到事件 ===');
+        console.log('事件名称:', eventName);
+        console.log('事件数据:', args);
+    });
 
-// 连接关闭处理
-ws.on('close', () => {
-    console.log(chalk.red('连接已关闭'));
-});
+    // 错误处理
+    socket.on('connect_error', (error) => {
+        console.log('=== 连接错误 ===');
+        console.log('连接错误详情:', {
+            message: error.message,
+            type: error.type,
+            description: error.description
+        });
+    });
 
-// 处理进程终止
-process.on('SIGINT', () => {
-    console.log(chalk.yellow('\n正在关闭连接...'));
-    ws.close();
-    process.exit();
-}); 
+    socket.on('error', (error) => {
+        console.log('=== 错误消息 ===');
+        console.log('收到错误消息:', error);
+    });
+
+    socket.on('disconnect', (reason) => {
+        console.log('=== 断开连接 ===');
+        console.log('断开连接:', reason);
+    });
+
+    // 测试消息响应
+    socket.on('message', (data) => {
+        console.log('=== 收到消息 ===');
+        console.log('收到服务器消息:', data);
+    });
+
+    // 监听 pong 响应
+    socket.on('pong', (data) => {
+        console.log('=== 收到 pong ===');
+        console.log('Pong 数据:', data);
+    });
+};
+
+// 初始化事件监听
+setupEventListeners();
+
+// 定时发送 ping
+setInterval(() => {
+    socket.emit('ping');
+    console.log('=== 发送 ping ===');
+}, 5000);
+
+// 保持进程运行
+process.stdin.resume();
+
+// 导出模块
+export {
+    socket
+};

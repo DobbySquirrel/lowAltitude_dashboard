@@ -9,7 +9,7 @@ import * as echarts from "echarts";
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 
 const props = defineProps({
-  rankings: {
+  orders: {
     type: Array,
     default: () => []
   }
@@ -17,81 +17,108 @@ const props = defineProps({
 
 const myChart = ref(null);
 
-const renderBarChart = () => {
+const renderChart = () => {
   const chartDom = document.getElementById("UserScoreBarChart");
   if (!chartDom) return;
-  
-  // 按分数排序
-  const sortedData = [...props.rankings].sort((a, b) => b.score - a.score);
 
   const option = {
     title: {
-      text: "User Cumulative Points",
+      text: "Consumer Age and Price Distribution",
       left: "center",
       textStyle: {
         color: "#333",
-        fontSize: 12
-      }
-    },
-    tooltip: {
-      trigger: "axis",
-      axisPointer: {
-        type: "shadow"
-      }
+        fontSize: 10
+      },
+      top: '0%'
     },
     grid: {
-      left: '7%',
-      right: '4%',
-      bottom: '0%',
-      top: '30%',
-      containLabel: true
+      left: '3%',
+      right: '10%',
+      bottom: 0,
+      top: '18%',
+      containLabel: true,
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: function(params) {
+        return `Age Group: ${params.name}<br/>Average Price: $${params.value.toFixed(2)}`;
+      }
     },
     xAxis: {
       type: 'category',
-      data: sortedData.map(item => item.phone),
+      name: 'Age Group',
+      nameLocation: 'middle',
+      nameGap: 30,
+      data: ['18-25', '26-35', '36-45', '46-65'],
       axisLabel: {
-        color: "#44652a",
-        interval: 0,
-        rotate: 30,
-        fontSize: 9,
-        formatter: function(value) {
-          // 如果字符串长度超过4，显示后4位
-          return value.length > 4 ? value.slice(-4) : value;
-        }
+        fontSize: 10,
+        interval: 'auto',
+        rotate: 0,
+        margin: 8,
+        hideOverlap: true
       }
     },
     yAxis: {
       type: 'value',
-      name: 'Score',
+      name: 'AVG (¥)',
       nameTextStyle: {
-        color: "#44652a"
+        fontSize: 10
       },
       axisLabel: {
-        color: "#44652a"
+        fontSize: 10,
+        formatter: (value) => value.toFixed(1)
       }
     },
-    series: [
-      {
-        name: "Return Score",
-        type: "bar",
-        data: sortedData.map(item => ({
-          value: item.score,
-          itemStyle: {
-            color: item.score >= 0 ? "rgba(145, 204, 117, 0.5)" : "rgba(255, 99, 71, 0.5)"
-          }
-        })),
-        label: {
-          show: true,
-          position: 'top',
-          color: "#44652a",
-          fontSize: 9
-        },
-        barWidth: '40%'
-      }
-    ]
+    series: [{
+      type: 'bar',
+      barWidth: '30%',
+      itemStyle: {
+        color: 'rgba(115, 192, 222, 0.8)'
+      },
+      label: {
+        show: true,
+        position: 'top',
+        formatter: (params) => params.value.toFixed(1),
+        fontSize: 10
+      },
+      data: calculateAgeGroupPrices(props.orders)
+    }]
   };
 
   myChart.value.setOption(option);
+};
+
+// 计算各年龄段的平均消费金额
+const calculateAgeGroupPrices = (orders) => {
+  const ageGroups = {
+    '18-25': { sum: 0, count: 0 },
+    '26-35': { sum: 0, count: 0 },
+    '36-45': { sum: 0, count: 0 },
+    '46-65': { sum: 0, count: 0 }
+  };
+
+  orders.forEach(order => {
+    const age = order.customer_age;
+    const price = order.price;
+    
+    if (age >= 18 && age <= 25) {
+      ageGroups['18-25'].sum += price;
+      ageGroups['18-25'].count++;
+    } else if (age > 25 && age <= 35) {
+      ageGroups['26-35'].sum += price;
+      ageGroups['26-35'].count++;
+    } else if (age > 35 && age <= 45) {
+      ageGroups['36-45'].sum += price;
+      ageGroups['36-45'].count++;
+    } else if (age > 45 && age <= 65) {
+      ageGroups['46-65'].sum += price;
+      ageGroups['46-65'].count++;
+    }
+  });
+
+  return Object.values(ageGroups).map(group => 
+    group.count > 0 ? group.sum / group.count : 0
+  );
 };
 
 const handleResize = () => {
@@ -101,13 +128,13 @@ const handleResize = () => {
 };
 
 // 监听数据变化
-watch(() => props.rankings, () => {
-  renderBarChart();
+watch(() => props.orders, () => {
+  renderChart();
 }, { deep: true });
 
 onMounted(() => {
   myChart.value = echarts.init(document.getElementById("UserScoreBarChart"));
-  renderBarChart();
+  renderChart();
   window.addEventListener('resize', handleResize);
 });
 

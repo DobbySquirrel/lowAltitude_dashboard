@@ -73,7 +73,7 @@ async function main() {
         processedImagesData = await processImages();
         console.log(`已处理 ${processedImagesData.length} 张图片`);
         
-        const ws = await connectWithRetry('ws://113.45.11.133:8080');
+        const ws = await connectWithRetry('ws://localhost:8080');
         console.log('连接到服务器成功');
         
         ws.send(JSON.stringify({

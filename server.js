@@ -154,6 +154,20 @@ wss.on('connection', (ws) => {
                         }
                     }
                     break;
+                case 'order-data':
+                    // 广播给所有 viewer 类型的客户端
+                    for (const [client, info] of clients) {
+                        if (client !== ws && 
+                            client.readyState === WebSocket.OPEN && 
+                            info.type === 'viewer') {
+                            try {
+                                client.send(JSON.stringify(data));
+                            } catch (error) {
+                                console.error(`发送订单数据失败 (客户端 ${info.id}):`, error);
+                            }
+                        }
+                    }
+                    break;
                 default:
                     console.error(`未知的消息类型: ${data.type}`);
             }

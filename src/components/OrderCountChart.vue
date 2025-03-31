@@ -14,11 +14,7 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
-  indoorOrders: {
-    type: Array,
-    default: () => []
-  },
-  outdoorOrders: {
+  humanOrders: {
     type: Array,
     default: () => []
   }
@@ -33,19 +29,14 @@ const initChart = () => {
 };
 
 const updateChart = () => {
-  // 获取最近24小时的时间标签
-  const timeLabels = Array.from({length: 24}, (_, i) => {
-    const d = new Date();
-    d.setHours(d.getHours() - (23 - i));
-    return d.toLocaleString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  // 获取最近60分钟的时间标签
+  const timeLabels = Array.from({length: 60}, (_, i) => {
+    return `${Math.floor(i / 60).toString().padStart(2, '0')}:${(i % 60).toString().padStart(2, '0')}`;
   });
 
   const option = {
     title: {
-      text: "Package Quantity Trend",
+      text: "Hourly Order Trends",
       left: "center",
       textStyle: {
         color: "#333",
@@ -62,9 +53,14 @@ const updateChart = () => {
           fontSize: 10
         },
       },
+      formatter: function(params) {
+        return `${params[0].name}<br/>
+                ${params[0].seriesName}: ${params[0].value} orders<br/>
+                ${params[1].seriesName}: ${params[1].value} orders`;
+      }
     },
     legend: {
-      data: ["Drone Orders", "Indoor Delivery Car Orders", "Outdoor Delivery Car Orders"],
+      data: ["Drone Orders", "Manual Orders"],
       top: '10%',
       left: '10%',
       textStyle: {
@@ -84,19 +80,24 @@ const updateChart = () => {
         boundaryGap: false,
         data: timeLabels,
         axisLabel: {
-          formatter: function(value) {
-            return value;
-          },
-          interval: 'auto',
-          rotate: 0,
+          interval: 4,  // 每5分钟显示一个标签
+          rotate: 45,
           margin: 8,
-          hideOverlap: true
+          hideOverlap: true,
+          fontSize: 10
         }
       },
     ],
     yAxis: [
       {
         type: "value",
+        name: "Orders",
+        nameTextStyle: {
+          fontSize: 10
+        },
+        axisLabel: {
+          fontSize: 10
+        }
       },
     ],
     series: [
@@ -111,25 +112,15 @@ const updateChart = () => {
         data: props.droneOrders,
       },
       {
-        name: "Indoor Delivery Car Orders",
+        name: "Manual Orders",
         type: "line",
         areaStyle: {color:"rgba(115, 192, 222, 0.5)"}, 
         color:"#73c0de",
         emphasis: {
           focus: "series",
         },
-        data: props.indoorOrders,
-      },
-      {
-        name: "Outdoor Delivery Car Orders",
-        type: "line",
-        color:"#91CC75",
-        areaStyle: {color:"rgba(145, 204, 117, 0.5)"},
-        emphasis: {
-          focus: "series",
-        },
-        data: props.outdoorOrders,
-      },
+        data: props.humanOrders,
+      }
     ],
   };
 
@@ -143,7 +134,7 @@ const handleResize = () => {
 };
 
 // 监听数据变化
-watch([() => props.droneOrders, () => props.indoorOrders, () => props.outdoorOrders], () => {
+watch([() => props.droneOrders, () => props.humanOrders], ([newDroneOrders, newHumanOrders]) => {
   updateChart();
 });
 

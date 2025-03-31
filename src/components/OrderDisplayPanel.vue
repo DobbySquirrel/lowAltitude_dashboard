@@ -31,20 +31,22 @@
     </div>
     
     <div class="orders-container">
-      <div class="order-card" v-for="order in filteredOrders" :key="order.id">
-        <div class="order-content">
-          <div class="order-icon">
-            <img :src="getOrderIcon(order.type)" alt="Order Icon">
-          </div>
-          <div class="order-details">
-            <div class="order-id">Order ID: {{ order.id }}</div>
-            <div class="order-item">Item Name: {{ order.itemName }}</div>
-            <div class="order-customer">Customer: {{ order.customer }}</div>
-            <div class="order-delivery">Delivery Method: {{ order.deliveryMethod }}</div>
-            <div class="order-status">Order Status: {{ order.status }}</div>
+      <TransitionGroup name="order-list">
+        <div class="order-card" v-for="order in filteredOrders" :key="order.id">
+          <div class="order-content">
+            <div class="order-icon">
+              <img :src="getOrderIcon(order.type)" alt="Order Icon">
+            </div>
+            <div class="order-details">
+              <div class="order-id">Order ID: {{ order.id }}</div>
+              <div class="order-item">Item Name: {{ order.itemName }}</div>
+              <div class="order-customer">Customer: {{ order.customer }}</div>
+              <div class="order-delivery">Delivery Method: {{ order.deliveryMethod }}</div>
+              <div class="order-status">Order Status: {{ order.status }}</div>
+            </div>
           </div>
         </div>
-      </div>
+      </TransitionGroup>
       <div v-if="filteredOrders.length === 0" class="no-results">
         No matching orders found
       </div>
@@ -244,13 +246,18 @@ const filterOrders = (filterType) => {
 }
 .order-card {
   width: 100%;
-  background-color: rgba(255, 255, 255, 0.3); /* 更透明的背景 */
+  background-color: rgba(255, 255, 255, 0.3);
   border-radius: 8px;
   padding: 10px;
   margin-bottom: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); /* 更淡的阴影 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
   box-sizing: border-box;
-  backdrop-filter: blur(1px); /* 减少模糊效果 */
+  backdrop-filter: blur(1px);
+  transition: background-color 0.3s ease;
+}
+
+.order-card:first-child {
+  background-color: rgba(173, 216, 230, 0.3); /* 为最新内容添加浅蓝色背景 */
 }
 
 .order-content {
@@ -303,5 +310,25 @@ const filterOrders = (filterType) => {
 /* 添加全局样式 */
 * {
   box-sizing: border-box;
+}
+
+/* 添加过渡动画样式 */
+.order-list-enter-active,
+.order-list-leave-active {
+  transition: all 0.5s ease;
+}
+
+.order-list-enter-from {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+.order-list-leave-to {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.order-list-move {
+  transition: transform 0.5s ease;
 }
 </style>

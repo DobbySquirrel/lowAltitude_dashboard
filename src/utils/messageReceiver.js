@@ -1,25 +1,35 @@
 import { ref } from 'vue';
-
+import { useDataStore } from '../store';
 // 消息存储
 const state = {
-    // 聊天消息历史
+    // 保留原有的状态
     chatMessages: ref([]),
-    // 订单历史
     orders: ref([]),
-    // 最新订单状态
     latestOrderStatus: ref(null),
-    // 在线用户列表
-    onlineUsers: ref([])
+    onlineUsers: ref([]),
+    // 添加仪表盘数据状态
+    dashboardData: ref(null)
 };
 
-// 消息接收处理器
 class MessageReceiver {
     constructor() {
         this.handlers = {
             'chat-message': this.handleChatMessage,
             'order-status': this.handleOrderStatus,
-            'order-confirmation': this.handleOrderConfirmation
+            'order-confirmation': this.handleOrderConfirmation,
+            // 添加 dashboard-data 处理器
+            'dashboard-data': this.handleDashboardData
         };
+    }
+
+    // 添加仪表盘数据处理方法
+    handleDashboardData(data) {
+        // 更新本地状态
+        state.dashboardData.value = data.payload;
+        
+        // 使用 pinia store 更新数据
+        const store = useDataStore();
+        store.updateDashboardData(data.payload);
     }
 
     // 处理接收到的消息
@@ -103,6 +113,7 @@ class MessageReceiver {
         state.chatMessages.value = [];
         state.orders.value = [];
         state.latestOrderStatus.value = null;
+        state.dashboardData.value = null;
     }
 }
 
@@ -116,6 +127,7 @@ export const messageReceiver = {
     orders: state.orders,
     latestOrderStatus: state.latestOrderStatus,
     onlineUsers: state.onlineUsers,
+    dashboardData: state.dashboardData,
 
     // 方法
     handleMessage: (event) => receiver.handleMessage(event),
