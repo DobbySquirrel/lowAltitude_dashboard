@@ -27,6 +27,8 @@ const setupEventListeners = () => {
         // 发送 init_world 消息
         const worldData = '{"client_type": "web", "action": "check"}';
         socket.emit('init_world', worldData);
+        const SynchronizeData = '{"client_type": "web", "action": "synchronize"}';
+        socket.emit('init_world', SynchronizeData);
     });
 
     // 监听init响应

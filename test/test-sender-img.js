@@ -73,12 +73,11 @@ async function main() {
         processedImagesData = await processImages();
         console.log(`已处理 ${processedImagesData.length} 张图片`);
         
-        const ws = await connectWithRetry('ws://localhost:8080');
+        const ws = await connectWithRetry('ws://10.12.17.136:8080');
         console.log('连接到服务器成功');
         
         ws.send(JSON.stringify({
             type: 'client-ready',
-            timestamp: Date.now(),
             clientType: 'sender'
         }));
 
@@ -97,11 +96,9 @@ async function main() {
                     const currentImage = processedImagesData[currentImageIndex];
                     const testFrame = {
                         type: 'video-frame',
-                        timestamp: now,
                         data: currentImage,
                         format: 'jpeg',
-                        width: config.imageWidth,
-                        height: config.imageHeight
+
                     };
 
                     ws.send(JSON.stringify(testFrame));

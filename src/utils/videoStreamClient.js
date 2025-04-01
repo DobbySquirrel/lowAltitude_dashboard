@@ -10,15 +10,15 @@ const instance = {
     frameCallback: null,
     // 添加帧率控制
     lastFrameTime: 0,
-    minFrameInterval: 1000 / 15,  // 限制最大帧率为15fps
+    minFrameInterval: 1000 / 10,  // 降低默认帧率为10fps
     urlQueue: [], // 用于管理 URL 生命周期
-    maxQueueSize: 3, // 保留最近3帧
+    maxQueueSize: 2, // 减少为保留最近2帧
 };
 
 // 根据环境配置 WebSocket 服务器地址
 const WS_SERVER = process.env.NODE_ENV === 'production' 
     ? `ws://${window.location.hostname}:8080`
-    : 'ws://localhost:8080';
+    : 'ws://10.12.17.136:8080';
 
 function initWebSocketServer() {
     if (instance.initialized || 
@@ -58,12 +58,17 @@ function initWebSocketServer() {
                     if (currentTime - instance.lastFrameTime < instance.minFrameInterval) {
                         return;
                     }
-                    instance.lastFrameTime = currentTime;
+                    
+                    while (instance.urlQueue.length > 0) {
+                        const oldUrl = instance.urlQueue.shift();
+                        URL.revokeObjectURL(oldUrl);
+                    }
 
+                    instance.lastFrameTime = currentTime;
                     const frameData = new Uint8Array(data.data);
                     const blob = new Blob([frameData], { 
                         type: 'image/jpeg',
-                        quality: 0.6
+                        quality: 0.5
                     });
                     
                     const imageUrl = URL.createObjectURL(blob);
@@ -72,11 +77,6 @@ function initWebSocketServer() {
                     
                     if (instance.frameCallback) {
                         instance.frameCallback(imageUrl);
-                    }
-                    
-                    while (instance.urlQueue.length > instance.maxQueueSize) {
-                        const oldUrl = instance.urlQueue.shift();
-                        URL.revokeObjectURL(oldUrl);
                     }
                 }
             } catch (error) {

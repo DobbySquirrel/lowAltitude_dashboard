@@ -203,11 +203,12 @@ onUnmounted(() => {
   position: absolute;
   top: 10px;
   left: 50%;
-  transform: translateX(-50%); /* 水平居中 */
-  width: 95%; /* 稍微减小宽度 */
-  height: 95%; /* 稍微减小高度 */
+  transform: translateX(-50%);
+  width: 95%;
+  height: auto;
+  aspect-ratio: 2.05 / 1; /* 根据实际图片比例设置 */
   z-index: 1;
-  overflow: hidden; /* 防止内容溢出 */
+  overflow: hidden;
 }
 
 /* 确保地图容器内的内容也正确居中 */
@@ -233,10 +234,10 @@ onUnmounted(() => {
 /* 修改左右两侧面板样式 */
 .left-panel {
   position: fixed;
-  left: 30px; /* 增加左侧间距 */
-  top: calc(15vh + 60px);
-  width: calc(20.83% - 45px); /* 调整宽度以适应更大的边距 */
-  height: calc(79vh - 75px);
+  left: 30px;
+  top: calc(160px + 30px); /* header高度 + 间距 */
+  width: calc(20.83% - 45px);
+  height: calc(100vh - 280px); /* 调整高度以适应新的地图比例 */
   background-color: rgba(255, 255, 255, 0);
   /* backdrop-filter: blur(2px); */
   border-radius: 8px;
@@ -249,10 +250,10 @@ onUnmounted(() => {
 
 .right-panel {
   position: fixed;
-  right: 30px; /* 增加右侧间距 */
-  top: calc(15vh + 60px);
-  width: calc(20.83% - 45px); /* 调整宽度以适应更大的边距 */
-  height: calc(79vh - 75px);
+  right: 30px;
+  top: calc(160px + 30px); /* header高度 + 间距 */
+  width: calc(20.83% - 45px);
+  height: calc(100vh - 280px); /* 调整高度以适应新的地图比例 */
   background-color: rgba(255, 255, 255, 0);
   /* backdrop-filter: blur(2px); */
   border-radius: 8px;
@@ -279,10 +280,9 @@ onUnmounted(() => {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 50px;
-  width: calc(58.33% - 60px); /* 调整宽度以适应更大的边距 */
-  height: 25%;
-  min-height: 160px;
+  bottom: 30px; /* 调整底部间距 */
+  width: calc(58.33% - 60px);
+  height: 200px; /* 设置固定高度 */
   background-color: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(2px);
   border-radius: 8px;

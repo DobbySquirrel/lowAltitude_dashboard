@@ -2,7 +2,7 @@
   <div class="video-container">
     <div class="title-container">
       <el-text class="mx-1" style="font-size: 12px; color: #333"
-        >Live Video</el-text
+        >Live</el-text
       >
     </div>
     <div ref="videoContainer" class="video-display">
@@ -12,31 +12,46 @@
 </template>
 
 <script>
-import { initWebSocketServer, cleanup, setFrameCallback, setFrameRate } from '@/utils/videoStreamClient';
+import { initWebSocketServer, cleanup, setFrameCallback, setFrameRate, setMaxQueueSize } from '@/utils/videoStreamClient';
 
 export default {
   name: "VideoDisplay",
   mounted() {
     this.initVideoDisplay();
     initWebSocketServer();
-    // 设置合适的帧率
-    setFrameRate(15); // 设置15fps
+    // 降低帧率
+    setFrameRate(10); // 设置10fps
+    // 设置较小的队列大小
+    setMaxQueueSize(2);
   },
   methods: {
     initVideoDisplay() {
       const imageElement = this.$refs.imageDisplay;
+      let currentImageUrl = null;
       
       setFrameCallback((imageUrl) => {
-        // 更新图像显示
-        imageElement.src = imageUrl;
-        // 在图像加载后释放 URL
-        imageElement.onload = () => {
+        // 如果当前图像正在加载，跳过新帧
+        if (imageElement.src && !imageElement.complete) {
           URL.revokeObjectURL(imageUrl);
-        };
+          return;
+        }
+        
+        // 清理当前显示的URL
+        if (currentImageUrl) {
+          URL.revokeObjectURL(currentImageUrl);
+        }
+        
+        // 更新图像显示
+        currentImageUrl = imageUrl;
+        imageElement.src = imageUrl;
       });
     }
   },
   beforeDestroy() {
+    // 确保在组件销毁时清理最后一个URL
+    if (this.$refs.imageDisplay && this.$refs.imageDisplay.src) {
+        URL.revokeObjectURL(this.$refs.imageDisplay.src);
+    }
     cleanup();
   }
 };

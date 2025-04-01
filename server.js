@@ -29,7 +29,7 @@ const clients = new Map(); // 存储格式: ws => { id, type }
 // 消息处理函数
 function handleChatMessage(ws, data) {
     const senderInfo = clients.get(ws);
-    console.log(`收到来自 ${senderInfo.id} 的聊天消息:`, data.data.content);
+    // console.log(`收到来自 ${senderInfo.id} 的聊天消息:`, data.data.content);
     
     // 广播给其他客户端
     for (const [client, info] of clients) {
@@ -109,6 +109,11 @@ wss.on('connection', (ws) => {
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
+            // console.log('收到消息:', {
+            //     类型: data.type,
+            //     时间戳: new Date().toISOString(),
+            //     数据: data
+            // });
             
             switch(data.type) {
                 case 'chat-message':
