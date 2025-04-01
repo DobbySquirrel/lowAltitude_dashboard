@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import chalk from 'chalk'; // 需要先安装: npm install chalk
 
 // 连接到WebSocket服务器
-const ws = new WebSocket('ws://localhost:8080');
+const ws = new WebSocket('ws://10.12.17.136:8080');
 
 // 设置客户端类型
 ws.on('open', () => {
@@ -12,8 +12,7 @@ ws.on('open', () => {
     ws.send(JSON.stringify({
         type: 'client-ready',
         timestamp: Date.now(),
-        clientType: 'monitor'  // 新的客户端类型 clientType: 'restaurant' 测试订单信息
-
+        clientType: 'monitor'  // 监控类型客户端
     }));
 });
 

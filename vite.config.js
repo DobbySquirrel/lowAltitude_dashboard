@@ -16,6 +16,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/mapv/, ""),
       },
+      '/socket.io': {
+        target: 'http://10.4.152.244:5001',
+        changeOrigin: true,
+        ws: true
+      }
     },
     host: '0.0.0.0'
   },

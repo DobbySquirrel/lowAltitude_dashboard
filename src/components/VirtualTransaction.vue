@@ -3,7 +3,12 @@
     <div class="transaction-container">
       <h2 class="title">Virtual Interaction Platform</h2>
       
-      <div class="main-content">
+      <div v-if="isInitializing" class="initializing-overlay">
+        <el-icon class="loading-icon"><loading /></el-icon>
+        <span>Initializing System...</span>
+      </div>
+      
+      <div class="main-content" v-else>
         <!-- 左侧餐厅部分 -->
         <div class="section restaurant-section">
           <h3><i class="el-icon-shop"></i> Restaurant Selection</h3>
@@ -52,11 +57,14 @@
             </el-form-item>
             
             <el-form-item label="Delivery Method">
-              <el-radio-group v-model="form.deliveryMethod">
-                <el-radio-button label="indoor">Indoor Delivery</el-radio-button>
-                <el-radio-button label="outdoor">Outdoor Delivery</el-radio-button>
-                <el-radio-button label="drone">Drone Delivery</el-radio-button>
-              </el-radio-group>
+              <el-select v-model="form.deliveryMethod" placeholder="Please select drone">
+                <el-option 
+                  v-for="droneId in availableDrones" 
+                  :key="droneId"
+                  :label="`Drone ${droneId}`"
+                  :value="droneId">
+                </el-option>
+              </el-select>
             </el-form-item>
           </el-form>
           <el-button type="primary" 
@@ -66,13 +74,24 @@
             Confirm Order
           </el-button>
         </div>
+
+        <!-- 添加订单状态显示 -->
+        <div v-if="latestOrderStatus" class="order-status">
+          <el-alert
+            :title="`Order ${latestOrderStatus.id}`"
+            :description="`Status: ${latestOrderStatus.status} | Drone: ${latestOrderStatus.droneId}`"
+            :type="getStatusType(latestOrderStatus.status)"
+            show-icon
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { messageHandler } from '../utils/messageHandler'
+import { messageHandler, initializeMessageHandler } from '../utils/messageHandler'
+import { wsClient } from '../utils/wsClient'
 import { messageReceiver } from '../utils/messageReceiver'
 
 export default {
@@ -86,90 +105,164 @@ export default {
       },
       selectedRestaurant: '',
       selectedPickup: '',
-      restaurants: [
-        { name: '逸林' },
-        { name: '肯德基' },
-        { name: '贵粉' },
-        { name: '真功夫' }
-      ],
-      pickupPoints: [
-        { name: '逸林', icon: 'el-icon-location' },
-        { name: '肯德基', icon: 'el-icon-location' },
-        { name: '贵粉', icon: 'el-icon-location' },
-        { name: '真功夫', icon: 'el-icon-location' }
-      ],
+      restaurants: [],
+      pickupPoints: [],
       items: [
-        { label: '炸鸡套餐', value: 'chicken' },
-        { label: '汉堡套餐', value: 'burger' },
-        { label: '米粉套餐', value: 'rice' },
-        { label: '饮品', value: 'drink' }
-      ]
+        { label: 'chicken', value: 'chicken' },
+        { label: 'burger', value: 'burger' },
+        { label: 'rice', value: 'rice' },
+        { label: 'drink', value: 'drink' }
+      ],
+      isInitializing: true
     }
   },
   computed: {
     latestOrderStatus() {
       return messageReceiver.latestOrderStatus.value;
+    },
+    availableDrones() {
+      return messageReceiver.worldData.value?.drone_ids || [];
     }
   },
   watch: {
+    'messageReceiver.worldData.value': {
+      handler(newData) {
+        if (newData) {
+          this.initializeData(newData);
+        }
+      },
+      immediate: true,
+      deep: true
+    },
     latestOrderStatus(newStatus) {
       if (newStatus) {
-        // 显示订单状态更新
         this.$message({
           type: 'success',
-          message: `订单状态: ${newStatus.status}`
+          message: `Order Status: ${newStatus.status}`
         });
       }
+    },
+    isInitializing(newVal) {
+      console.log('isInitializing changed to:', newVal);
     }
   },
+  created() {
+    console.log('Component created');
+    const worldData = messageReceiver.worldData.value;
+    if (worldData) {
+      this.initializeData(worldData);
+    }
+    initializeMessageHandler(wsClient);
+  },
+  beforeUnmount() {
+    wsClient.disconnect();
+  },
   methods: {
+    initializeData(data) {
+      console.log('Initializing with data:', data);
+      
+      if (Array.isArray(data.merchant_names)) {
+        this.restaurants = data.merchant_names.map((name, index) => ({
+          name,
+          id: data.merchant_ids?.[index] || name,
+          coordinates: data.merchant_coordinates?.[index] || []
+        }));
+      }
+      
+      if (Array.isArray(data.cabinets_ids)) {
+        this.pickupPoints = data.cabinets_ids.map((id, index) => ({
+          name: id,
+          icon: 'el-icon-location',
+          coordinates: data.cabinets_coordinates?.[index] || []
+        }));
+      }
+      
+      if (this.restaurants.length > 0 && this.pickupPoints.length > 0) {
+        this.isInitializing = false;
+      }
+    },
     selectRestaurant(name) {
+      console.log('选择餐厅:', name);
       this.selectedRestaurant = name;
     },
     selectPickup(name) {
+      console.log('选择取餐点:', name);
       this.selectedPickup = name;
     },
+    getStatusType(status) {
+      const statusMap = {
+        'submitted': 'info',
+        'processing': 'warning',
+        'completed': 'success',
+        'failed': 'error'
+      };
+      return statusMap[status] || 'info';
+    },
     submitOrder() {
-      // 表单验证
-      if (!this.selectedRestaurant) {
-        this.$message.warning('请选择餐厅');
+      if (!this.validateOrder()) {
         return;
       }
-      if (!this.selectedPickup) {
-        this.$message.warning('请选择取餐点');
-        return;
-      }
-      if (!this.form.username) {
-        this.$message.warning('请输入用户名');
-        return;
-      }
-      if (this.form.selectedItems.length === 0) {
-        this.$message.warning('请选择商品');
-        return;
-      }
-      if (!this.form.deliveryMethod) {
-        this.$message.warning('请选择配送方式');
+
+      const selectedRestaurant = this.restaurants.find(r => r.name === this.selectedRestaurant);
+      const selectedPickupPoint = this.pickupPoints.find(p => p.name === this.selectedPickup);
+
+      if (!selectedRestaurant || !selectedPickupPoint) {
+        this.$message.error('无法找到选中的餐厅或取餐点信息');
         return;
       }
 
       const orderData = {
-        selectedRestaurant: this.selectedRestaurant,
-        selectedPickup: this.selectedPickup,
-        username: this.form.username,
-        selectedItems: this.form.selectedItems,
-        deliveryMethod: this.form.deliveryMethod
+        order_id: '',
+        priority: 0,
+        good: this.form.selectedItems,
+        customer_name: this.form.username,
+        customer_point: selectedPickupPoint.name,
+        merchant_name: selectedRestaurant.name,
+        merchant_point: selectedRestaurant.id,
+        customer_coordinates: selectedPickupPoint.coordinates,
+        merchant_coordinates: selectedRestaurant.coordinates,
+        order_mode: "ORDER_PLACE",
+        consumer_order_timestamp: Date.now(),
+        selected_drone_id: this.form.deliveryMethod
       };
-      
+
+      console.log('提交订单数据:', orderData);
       messageHandler.sendOrder(orderData);
-      
-      // 提交后的提示
-      this.$message.success('订单已提交，请等待确认');
-      
-      // 清空表单
+      this.resetForm();
+    },
+    validateOrder() {
+      if (!this.selectedRestaurant) {
+        this.$message.warning('Please select a restaurant');
+        return false;
+      }
+      if (!this.selectedPickup) {
+        this.$message.warning('Please select a pickup location');
+        return false;
+      }
+      if (!this.form.username) {
+        this.$message.warning('Please enter username');
+        return false;
+      }
+      if (this.form.selectedItems.length === 0) {
+        this.$message.warning('Please select items');
+        return false;
+      }
+      if (!this.form.deliveryMethod) {
+        this.$message.warning('Please select a drone');
+        return false;
+      }
+      return true;
+    },
+    getRestaurantId(restaurantName) {
+      const restaurant = this.restaurants.find(r => r.name === restaurantName);
+      return restaurant ? restaurant.id : null;
+    },
+    resetForm() {
       this.form.selectedItems = [];
       this.form.deliveryMethod = '';
       this.selectedRestaurant = '';
       this.selectedPickup = '';
+      this.$message.success('Order submitted successfully');
     }
   }
 }
@@ -296,5 +389,35 @@ export default {
 :deep(.el-radio-button:first-child .el-radio-button__inner),
 :deep(.el-radio-button:last-child .el-radio-button__inner) {
   border-radius: 4px;
+}
+
+.initializing-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  z-index: 1000;
+}
+
+.loading-icon {
+  font-size: 48px;
+  color: #409EFF;
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.order-status {
+  margin: 20px 0;
 }
 </style> 

@@ -17,26 +17,7 @@
           <!-- Statistic Cards Layout -->
           <el-row :gutter="5" class="statistic-row">
             <el-col :span="1" class="statistic-col"> </el-col>
-            <el-col :span="8" class="statistic-col">
-              <div class="statistic-card">
-                <el-statistic
-                  :value="humanSuccessOrders"
-                  value-style="font-size: 1.2em; color: #2c3e50;font-weight: bold;"
-                >
-                  <template #title>
-                    <div style="display: inline-flex; align-items: center; font-size: 1.2em; color: #2c3e50;">
-                      Courier Success Orders
-                    </div>
-                  </template>
-                  <template #prefix>
-                    <img :src="orderIcons.courier" class="statistic-icon" alt="courier" style="width: 35px; height: 35px;" />
-                    <span style="margin-left: 5px"></span>
-                  </template>
-                </el-statistic>
-              </div>
-            </el-col>
-
-            <el-col :span="8" class="statistic-col">
+            <el-col :span="8" :offset="2" class="statistic-col">
               <div class="statistic-card">
                 <el-statistic
                   :value="droneSuccessOrders"

@@ -169,18 +169,20 @@ onUnmounted(() => {
 
 /* 修改 header 样式使其固定 */
 .el-header {
-  position: fixed; /* 改为固定定位 */
+  position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%; /* 与地图区域保持一致 */
   flex-shrink: 0;
   height: auto !important;
   padding: 10px;
   min-height: 160px;
   max-height: 15vh;
   overflow: hidden;
-  z-index: 100; /* 提高层级确保在最上层 */
-  background-color: #fff; /* 添加背景色 */
+  z-index: 100;
+  background-color: #fff;
+  border-radius: 8px; /* 添加圆角 */
 }
 
 /* 为了防止内容被固定header遮挡，需要给main内容添加上边距 */
@@ -206,7 +208,7 @@ onUnmounted(() => {
   transform: translateX(-50%);
   width: 95%;
   height: auto;
-  aspect-ratio: 2.05 / 1; /* 根据实际图片比例设置 */
+  aspect-ratio: 2.2 / 1; /* 根据实际图片比例设置 */
   z-index: 1;
   overflow: hidden;
 }
@@ -234,34 +236,30 @@ onUnmounted(() => {
 /* 修改左右两侧面板样式 */
 .left-panel {
   position: fixed;
-  left: 30px;
-  top: calc(160px + 30px); /* header高度 + 间距 */
-  width: calc(20.83% - 45px);
-  height: calc(100vh - 280px); /* 调整高度以适应新的地图比例 */
+  left: calc(50% - 42vw); /* 从47.5vw改为45vw，向右移动 */
+  top: calc(160px + 30px);
+  width: calc(20.83% - 70px);
+  height: calc(100vh - 280px);
   background-color: rgba(255, 255, 255, 0);
-  /* backdrop-filter: blur(2px); */
   border-radius: 8px;
   padding: 15px;
-  overflow-y: auto;
+  overflow: hidden;
   z-index: 3;
   pointer-events: auto;
-  overflow: hidden;
 }
 
 .right-panel {
   position: fixed;
-  right: 30px;
-  top: calc(160px + 30px); /* header高度 + 间距 */
-  width: calc(20.83% - 45px);
-  height: calc(100vh - 280px); /* 调整高度以适应新的地图比例 */
+  right: calc(50% - 42vw); /* 从47.5vw改为45vw，向左移动 */
+  top: calc(160px + 30px);
+  width: calc(20.83% - 70px);
+  height: calc(100vh - 280px);
   background-color: rgba(255, 255, 255, 0);
-  /* backdrop-filter: blur(2px); */
   border-radius: 8px;
   padding: 15px;
-  overflow-y: auto;
+  overflow: hidden;
   z-index: 3;
   pointer-events: auto;
-  overflow: hidden;
 }
 
 /* 修改中间内容区域样式 */
@@ -280,9 +278,9 @@ onUnmounted(() => {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 30px; /* 调整底部间距 */
-  width: calc(58.33% - 60px);
-  height: 200px; /* 设置固定高度 */
+  bottom: 30px;
+  width: calc(58.33% - 230px); /* 调整宽度，减小间距 */
+  height: 200px;
   background-color: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(2px);
   border-radius: 8px;
@@ -351,13 +349,13 @@ onUnmounted(() => {
 }
 
 .virtual-button {
-  left: 5vw; /* 使用视窗宽度的相对单位 */
+  left: 10vw; /* 使用视窗宽度的相对单位 */
   background-color: rgba(64, 158, 255, 0.5);
   color: white;
 }
 
 .chat-button {
-  right: 5vw; /* 使用视窗宽度的相对单位 */
+  right: 10vw; /* 使用视窗宽度的相对单位 */
   background-color: rgba(60, 98, 155, 0.5);
   color: white;
 }

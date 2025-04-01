@@ -2,7 +2,7 @@
   <div class="video-container">
     <div class="title-container">
       <el-text class="mx-1" style="font-size: 12px; color: #333"
-        >Live</el-text
+        ></el-text
       >
     </div>
     <div ref="videoContainer" class="video-display">
@@ -19,10 +19,8 @@ export default {
   mounted() {
     this.initVideoDisplay();
     initWebSocketServer();
-    // 降低帧率
-    setFrameRate(10); // 设置10fps
-    // 设置较小的队列大小
-    setMaxQueueSize(2);
+    setFrameRate(60); // 提高到30fps
+    setMaxQueueSize(4); // 增加队列大小
   },
   methods: {
     initVideoDisplay() {
@@ -81,6 +79,7 @@ export default {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  border-radius: 8px;
 }
 
 .title-container {

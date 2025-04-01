@@ -10,9 +10,9 @@ const instance = {
     frameCallback: null,
     // 添加帧率控制
     lastFrameTime: 0,
-    minFrameInterval: 1000 / 10,  // 降低默认帧率为10fps
+    minFrameInterval: 1000 / 60,  // 提高帧率到60fps
     urlQueue: [], // 用于管理 URL 生命周期
-    maxQueueSize: 2, // 减少为保留最近2帧
+    maxQueueSize: 4, // 略微增加队列大小
 };
 
 // 根据环境配置 WebSocket 服务器地址
@@ -68,7 +68,7 @@ function initWebSocketServer() {
                     const frameData = new Uint8Array(data.data);
                     const blob = new Blob([frameData], { 
                         type: 'image/jpeg',
-                        quality: 0.5
+                        quality: 1  // 进一步提高JPEG质量到0.98
                     });
                     
                     const imageUrl = URL.createObjectURL(blob);

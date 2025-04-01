@@ -9,16 +9,6 @@
           </div>
           <span>X{{ drones.length }}</span>
         </div>
-        <div class="role-indicator">
-          <div class="role-icon">
-            <img :src="orderIcons.courier" alt="Courier Icon">
-          </div>
-          <span>X{{ couriers.length }}</span>
-        </div>
-      </div>
-      <div class="role-buttons">
-        <button class="role-button" @click="toggleFilter('drone')" :class="{ active: currentFilter === 'drone' }">Drone</button>
-        <button class="role-button" @click="toggleFilter('courier')" :class="{ active: currentFilter === 'courier' }">Courier</button>
       </div>
       <div class="search-bar">
         <input 
@@ -35,9 +25,6 @@
         class="order-card" 
         v-for="role in filteredRoles" 
         :key="role.id"
-        :class="{
-          'card-expanded': role.type === 'courier' && role.orders?.length > 1
-        }"
       >
         <div class="progress-bar">
           <div 
@@ -326,35 +313,6 @@ const formatLocation = (location) => {
   width: 24px;
   height: 24px;
   opacity: 0.6;
-}
-
-.role-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.role-button {
-  flex: 1;
-  margin: 0 5px;
-  padding: 8px;
-  background-color: rgba(245, 245, 245, 0.85);
-  border: none;
-  border-radius: 4px;
-  color: #333;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.role-button:hover {
-  background-color: rgba(224, 224, 224, 0.85);
-}
-
-.role-button.active {
-  background-color: rgba(44, 62, 80, 0.85);
-  color: white;
-  font-weight: bold;
 }
 
 .search-bar {

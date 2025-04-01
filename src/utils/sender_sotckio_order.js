@@ -3,14 +3,12 @@ import { io } from 'socket.io-client';
 // Socket配置选项
 const socketOptions = {
     reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    timeout: 5000,
-    transports: ['polling', 'websocket'],
-    forceNew: true,
-    autoConnect: true,
-    withCredentials: false,
-    path: '/socket.io/'
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 2000,
+    reconnectionDelayMax: 10000,
+    timeout: 10000,
+    transports: ['websocket', 'polling'],
+    autoConnect: true
 };
 
 // 创建socket实例
@@ -24,13 +22,17 @@ const setupEventListeners = () => {
         console.log('已成功连接到服务器');
         console.log('Socket ID:', socket.id);
         
-        // 发送 init_client 消息
-        const clientData = '{"client_type": "web"}';
-        socket.emit('init_client', clientData);
+        try {
+            // 发送 init_client 消息
+            const clientData = '{"client_type": "web"}';
+            socket.emit('init_client', clientData);
 
-        // 发送 init_world 消息
-        const worldData = '{"client_type": "web", "action": "synchronize"}';
-        socket.emit('init_world', worldData);
+            // 发送 init_world 消息
+            const worldData = '{"client_type": "web", "action": "synchronize"}';
+            socket.emit('init_world', worldData);
+        } catch (error) {
+            console.error('发送初始化消息失败:', error);
+        }
     });
 
     // 监听init响应
@@ -43,6 +45,39 @@ const setupEventListeners = () => {
     socket.on('connect_error', (error) => {
         console.log('=== 连接错误 ===');
         console.log('连接错误详情:', error);
+        console.log('正在尝试重新连接...');
+        
+        if (window.$message) {
+            window.$message.error('服务器连接失败，正在尝试重新连接...');
+        }
+    });
+
+    socket.on('reconnect', (attemptNumber) => {
+        console.log('=== 重新连接成功 ===');
+        console.log('重试次数:', attemptNumber);
+        
+        if (window.$message) {
+            window.$message.success('重新连接成功！');
+        }
+    });
+
+    socket.on('reconnect_attempt', (attemptNumber) => {
+        console.log('=== 尝试重新连接 ===');
+        console.log('当前尝试次数:', attemptNumber);
+    });
+
+    socket.on('reconnect_error', (error) => {
+        console.log('=== 重连错误 ===');
+        console.log('重连错误详情:', error);
+    });
+
+    socket.on('reconnect_failed', () => {
+        console.log('=== 重连失败 ===');
+        console.log('已达到最大重试次数');
+        
+        if (window.$message) {
+            window.$message.error('无法连接到服务器，请检查网络后刷新页面');
+        }
     });
 
     socket.on('error', (error) => {
@@ -108,9 +143,6 @@ setupEventListeners();
 //     socket.emit('ping');
 //     console.log('=== 发送 ping ===');
 // }, 5000);
-
-// 保持进程运行
-process.stdin.resume();
 
 // 导出模块
 export {
