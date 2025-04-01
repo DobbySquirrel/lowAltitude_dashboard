@@ -213,62 +213,56 @@ watch(() => props.roles, (newRoles) => {
 }, { deep: true });
 
 const getProgressWidth = (status) => {
-  console.log('计算进度条宽度，当前状态:', status);
+
   if (!status) {
-    console.log('状态为空，返回 0%');
+
     return '0%';
   }
   
   const steps = ['已下单', '准备中', '配送中', '已送达'];
   const index = steps.indexOf(status);
-  console.log('状态在步骤中的索引:', index);
+
   if (index === -1) {
-    console.log('未找到对应状态，返回 0%');
+
     return '0%';
   }
   const width = `${((index + 1) / steps.length) * 100}%`;
-  console.log('计算得到的宽度:', width);
+
   return width;
 };
 
 const getProgressClass = (status) => {
-  console.log('获取进度条样式类，当前状态:', status);
+
   if (!status) {
-    console.log('状态为空，返回默认样式');
+
     return 'progress-ordered';
   }
   
   const statusKey = Object.entries(STATUS_MAP).find(([key]) => key === status)?.[1];
-  console.log('映射后的状态:', statusKey);
+
   const className = `progress-${(statusKey || 'ordered').toLowerCase()}`;
-  console.log('返回的样式类名:', className);
+
   return className;
 };
 
 const isStepActive = (step, status) => {
-  console.log('检查步骤是否激活:', { step, status });
+
   if (!status) {
-    console.log('状态为空，返回 false');
+ 
     return false;
   }
   
   const steps = ['已下单', '准备中', '配送中', '已送达'];
   const currentIndex = steps.indexOf(status);
   const stepIndex = steps.indexOf(step);
-  console.log('当前索引和步骤索引:', { currentIndex, stepIndex });
+  
   const isActive = currentIndex >= stepIndex && stepIndex !== -1;
-  console.log('步骤是否激活:', isActive);
+
   return isActive;
 };
 
 // 添加计算属性来查看过滤后的角色数据
 const filteredRolesDebug = computed(() => {
-  console.log('过滤角色数据:', {
-    drones: props.drones,
-    couriers: props.couriers,
-    currentFilter: currentFilter.value,
-    searchQuery: searchQuery.value
-  });
   return filteredRoles.value;
 });
 

@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import chalk from 'chalk'; // 需要先安装: npm install chalk
 
 // 连接到WebSocket服务器
-const ws = new WebSocket('ws://113.45.11.133:8080');
+const ws = new WebSocket('ws://localhost:8080');
 
 // 设置客户端类型
 ws.on('open', () => {

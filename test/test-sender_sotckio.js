@@ -20,14 +20,13 @@ const setupEventListeners = () => {
         console.log('已成功连接到服务器');
         console.log('Socket ID:', socket.id);
         
-        // 直接使用字符串形式
-        const initData = '{"message": {"client_type": "web"}}';
-        
-        console.log('发送的数据类型:', typeof initData);
-        console.log('发送的数据内容:', initData);
-        
-        socket.emit('init', initData);
-        socket.emit('client_message', initData);
+        // 发送 init_client 消息
+        const clientData = '{"client_type": "web"}';
+        socket.emit('init_client', clientData);
+
+        // 发送 init_world 消息
+        const worldData = '{"client_type": "web", "action": "check"}';
+        socket.emit('init_world', worldData);
     });
 
     // 监听init响应
@@ -79,16 +78,43 @@ const setupEventListeners = () => {
         console.log('=== 收到 pong ===');
         console.log('Pong 数据:', data);
     });
+
+    // 处理返回的 init_world 响应
+    socket.on('init_world', (data) => {
+        console.log('=== 初始化世界响应 ===');
+        console.log('服务器响应:', data);
+
+        if (data && data.action === 'wait') {
+            console.log('等待状态，重新发送 init_world 检查请求');
+            const recheckData = '{"client_type": "web", "action": "check"}';
+            socket.emit('init_world', recheckData);
+        } else if (data && data.action === 'synchronize') {
+            console.log('可以同步，执行同步操作');
+            // 将动作更改为 synchronize 并发送
+            const syncData = '{"client_type": "web", "action": "synchronize"}';
+            socket.emit('init_world', syncData);
+            // 执行同步相关操作，如处理订单消息等
+        } else {
+            console.log('接收到非期望响应:', data.message);
+        }
+    });
+
+    // 监听order_message
+    socket.on('order_message', (data) => {
+        console.log('=== 收到订单消息 ===');
+        console.log('订单数量:', data.total_orders_num);
+        // 在这里添加处理订单信息的代码逻辑
+    });
 };
 
 // 初始化事件监听
 setupEventListeners();
 
-// 定时发送 ping
-setInterval(() => {
-    socket.emit('ping');
-    console.log('=== 发送 ping ===');
-}, 5000);
+// 移除定时发送 ping 的部分
+// setInterval(() => {
+//     socket.emit('ping');
+//     console.log('=== 发送 ping ===');
+// }, 5000);
 
 // 保持进程运行
 process.stdin.resume();
