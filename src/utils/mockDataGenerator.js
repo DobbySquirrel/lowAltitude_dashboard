@@ -1,6 +1,6 @@
 // 存储已生成的订单
 let generatedOrders = [];
-const ORDER_COUNT = 100;
+const ORDER_COUNT = 10;
 
 // 生成随机数据
 export const generateMockData = () => {

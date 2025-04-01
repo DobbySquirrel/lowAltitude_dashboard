@@ -101,10 +101,7 @@ function updateDeliveryRole(data) {
     
     // 确保状态正确
     let currentStatus = getDeliveryStatus(data.status);
-    console.log('当前订单状态:', {
-        originalStatus: data.status,
-        mappedStatus: currentStatus
-    });
+
 
     const roleData = {
         id: roleId,
@@ -146,7 +143,6 @@ function updateDeliveryRole(data) {
         }, 60000); // 1分钟后清理
     }
 
-    console.log('生成的角色数据:', roleData);
     return roleData;
 }
 
@@ -163,10 +159,10 @@ function updateAccumulatedData(cleanedData) {
         if (existingOrder.status !== '已送达' && cleanedData.status === '已送达') {
             if (cleanedData.deliveryMethod === '人工配送') {
                 accumulatedData.humanSuccessOrders++;
-                console.log('人工配送成功订单数更新为:', accumulatedData.humanSuccessOrders);
+ 
             } else if (cleanedData.deliveryMethod === '无人机配送') {
                 accumulatedData.droneSuccessOrders++;
-                console.log('无人机配送成功订单数更新为:', accumulatedData.droneSuccessOrders);
+         
             }
         }
 
@@ -190,10 +186,10 @@ function updateAccumulatedData(cleanedData) {
         if (cleanedData.status === '已送达') {
             if (cleanedData.deliveryMethod === '人工配送') {
                 accumulatedData.humanSuccessOrders++;
-                console.log('人工配送成功订单数更新为:', accumulatedData.humanSuccessOrders);
+                
             } else if (cleanedData.deliveryMethod === '无人机配送') {
                 accumulatedData.droneSuccessOrders++;
-                console.log('无人机配送成功订单数更新为:', accumulatedData.droneSuccessOrders);
+            
             }
         }
 
@@ -202,20 +198,12 @@ function updateAccumulatedData(cleanedData) {
             const date = new Date(cleanedData.createTime);
             const minute = date.getMinutes();
             accumulatedData.droneOrderTrend[minute] = (accumulatedData.droneOrderTrend[minute] || 0) + 1;
-            console.log('更新无人机订单趋势:', {
-                minute,
-                value: accumulatedData.droneOrderTrend[minute],
-                trend: [...accumulatedData.droneOrderTrend]
-            });
+          
         } else {
             const date = new Date(cleanedData.createTime);
             const minute = date.getMinutes();
             accumulatedData.humanOrderTrend[minute] = (accumulatedData.humanOrderTrend[minute] || 0) + 1;
-            console.log('更新人工配送订单趋势:', {
-                minute,
-                value: accumulatedData.humanOrderTrend[minute],
-                trend: [...accumulatedData.humanOrderTrend]
-            });
+           
         }
 
         // 更新活跃配送员/无人机
@@ -250,7 +238,6 @@ function updateAccumulatedData(cleanedData) {
 }
 
 export function transformOrderToDashboard(data) {
-    console.log('Transforming order data:', data);
     
     if (!data) {
         console.error('No data received');
@@ -297,11 +284,7 @@ export function transformOrderToDashboard(data) {
             }
         };
 
-        console.log('Dashboard data header:', dashboardData.header); // 添加日志
-        console.log('订单趋势数据:', {
-            droneOrders: dashboardData.orderCount.droneOrders,
-            humanOrders: dashboardData.orderCount.humanOrders
-        });
+
         return dashboardData;
     } catch (error) {
         console.error('Error transforming data:', error);
